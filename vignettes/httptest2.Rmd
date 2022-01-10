@@ -1,0 +1,331 @@
+---
+title: "httptest: A Test Environment for HTTP Requests in R"
+description: "This vignette covers the core features of the httptest package, focusing on how to mock HTTP responses, how to make assertions about requests, and how to record real requests for future use as mocks."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{httptest: A Test Environment for HTTP Requests in R}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, results='hide', echo=FALSE, message=FALSE}
+options(width=120)
+```
+
+Testing code and packages that communicate with remote servers can be painful. Dealing with authentication, bootstrapping server state, cleaning up objects that may get created during the test run, network flakiness, and other complications can make testing seem too costly to bother with. But it doesn't need to be that hard. The `httptest2` package lets you test R code that constructs API requests and handles their responses, all without requiring access to the remote service during the test run. This makes tests easy to write and fast to run.
+
+This vignette covers some of the core features of the `httptest2` package, focusing on how to mock HTTP responses, how to make other assertions about requests, and how to record real requests for future use as mocks. Note that `httptest2` requires the `testthat` package, and it follows the testing conventions and interfaces defined there, extending them with some additional wrappers and expectations. If you're not familiar with `testthat`, see the ["Testing" chapter](https://r-pkgs.org/tests.html) chapter of Hadley Wickham's _R Packages_ book.
+
+`httptest2` is designed for use with packages that rely on the [`httr2`](https://httr2.r-lib.org/) requests library—it is a bridge between `httr2` and `testthat`. If you're using [`httr`](https://httr.r-lib.org/), use [`httptest`](https://enpiar.com/r/httptest/), on which this package is based.
+
+## Getting started
+
+First, we need to add `httptest2` to our package test suite. Once you've configured your package to use `testthat` (`usethis::use_testthat()` is one way), run `httptest2::use_httptest2()`. This adds `httptest2` to your package `DESCRIPTION` and makes sure it is loaded in your test setup code.
+
+`httptest2` provides several contexts, which are "with"-style functions that you wrap around other code you want to execute.
+
+* `without_internet()`: any `httr2` request performed will raise an informative error
+* `with_mock_api()`: requests will look for an associated mock file to return instead of making a real request; if none found, it will raise an informative error
+* `capture_requests()`: real requests will be saved to mock files so that `with_mock_api()` can load them
+* `with_mock_dir()`: wrapper around `capture_requests()` and `with_mock_api()`, switching between them based on the existence of the given directory. If it exists, `with_mock_api()` will use it; if not, real requests will be made and responses will be recorded into it so that subsequent runs will use them as mocks. To re-record real responses, delete the directory.
+
+## Basic tests from a live server
+
+A good place to start is with a small number of end-to-end tests: things that you can run against the real API to confirm that the whole workflow functions correctly. To do this, we'll use the `with_mock_dir()` context.
+
+Let's suppose we're making a package from the first example from the `httr2` vignette on [wrapping APIs](https://httr2.r-lib.org/articles/wrapping-apis.html), which wraps the [faker API](https://fakerapi.it/en):
+
+```R
+faker_person <- function(gender = NULL, birthday_start = NULL, birthday_end = NULL, quantity = 1, locale = "en_US", seed = NULL) {
+  faker(
+    "persons",
+    gender = gender,
+    birthday_start = birthday_start,
+    birthday_end = birthday_end,
+    quantity = quantity,
+    locale = locale,
+    seed = seed
+  )
+}
+
+faker <- function(resource, ..., quantity = 1, locale = "en_US", seed = NULL) {
+  params <- list(
+    ...,
+    quantity = quantity,
+    locale = locale,
+    seed = seed
+  )
+  names(params) <- paste0("_", names(params))
+
+  request("https://fakerapi.it/api/v1") %>%
+    req_url_path_append(resource) %>%
+    req_url_query(!!!params) %>%
+    req_user_agent("my_package_name (http://my.package.web.site)") %>%
+    req_perform() %>%
+    resp_body_json()
+}
+```
+
+We could add a test file at `tests/testthat/test-person.R` in our package and put this test in it:
+
+```r
+test_that("We can get people", {
+  expect_length(faker_person("female", quantity = 2), 2)
+})
+```
+
+If we run that test, it will make a live API call and return a response containing 2 fake people. Every time we run it, it will make an API request, and if there is no network connection, or the API happens to be down, the test will fail.
+
+Instead, let's wrap this test in `with_mock_dir()` so that we can record that response the first time we run it and then load it as a mock every time after.
+
+```r
+with_mock_dir("person", {
+  test_that("We can get people", {
+    expect_length(faker_person("female", quantity = 2), 2)
+  })
+})
+```
+
+To illustrate how that works, let's run that again outside of the test and with some verbose messages turned on.
+
+```r
+options(httptest2.verbose = TRUE)
+
+with_mock_dir("person", {
+  system.time(peeps <- faker_person("female", quantity = 2))
+})
+
+## Recording responses to tests/testthat/person
+## Writing /Users/you/fakerpkg/tests/testthat/person/fakerapi.it/api/v1/persons-fdcc43.json
+##    user  system elapsed
+##   0.022   0.003   0.611
+```
+
+Because `tests/testthat/person` does not exist, it makes a real request, which takes around 600 milliseconds. And now if we look at the file system, we see a new file
+
+```
+tests/testthat/person/fakerapi.it/api/v1/persons-fdcc43.json
+```
+
+which contains the JSON response body from our request:
+
+```
+{
+    "status": "OK",
+    "code": 200,
+    "total": 2,
+    "data": [
+        {
+            "firstname": "Kyra",
+            "lastname": "Schuster",
+            "email": "mraz.jeffery@abernathy.com",
+            "phone": "+5531037042476",
+            "birthday": "1932-09-11",
+            "gender": "female",
+            ...
+        },
+        ...
+    ]
+}
+```
+
+Note how the file path matches the request URL. Requests are translated to mock file paths according to several rules that incorporate the request method, URL, query parameters, and body.
+First, the request protocol is removed from the URL.
+Second, if the request URL contains a query string, it will be popped off,
+hashed by `digest::digest()`, and the first six characters appended to the
+file being read. Third, request bodies are similarly hashed and
+appended. Finally, if a request method other than GET is used it will be
+appended to the end of the end of the file name.
+
+If you want to know what request was made, you can run the code inside `without_internet()`, and the error message will tell you:
+
+```r
+without_internet({
+  faker_person("female", quantity = 2)
+})
+
+## Error: An unexpected request was made:
+## GET https://fakerapi.it/api/v1/persons?_gender=female&_quantity=2&_locale=en_US
+## Run `rlang::last_error()` to see where the error occurred.
+```
+
+Back to `with_mock_dir()`: the next time we run the same code, we'll see that it loads the mock file.
+
+```r
+with_mock_dir("person", {
+  system.time(peeps2 <- faker_person("female", quantity = 2))
+})
+
+## Using mocks found in tests/testthat/person
+## Reading /Users/you/fakerpkg/tests/testthat/person/fakerapi.it/api/v1/persons-fdcc43.json
+##    user  system elapsed
+##   0.011   0.000   0.011
+```
+
+Because the `person` directory exists now, `with_mock_dir()` uses the previously recorded mocks, matches our exact query with the one we did before, and returns it instantly, without making a network connection. We can see that it is using the previously recorded response because the result is identical---with the faker API, you get different data back for every request.
+
+```r
+identical(peeps, peeps2)
+
+## [1] TRUE
+```
+
+Note that none of the test code inside `with_mock_dir()` looks any different from how you'd write it if you were testing against a live server using just `testthat`. The goal is to make your tests just as natural to write as if you were using your package normally.
+
+> Do your recorded responses contain sensitive information? Are they unnecessarily large? See `vignette("redacting", package = "httptest2")` for how to trim and sanitize recorded mocks.
+
+## Going deeper
+
+`with_mock_dir()` is convenient to use, but you probably don't want all of your tests to be based on real requests. Among the reasons:
+
+* Some API responses contain way more content than is necessary to test your R code around them: 100 records when 2 will suffice, include metadata that you don't care about and can't meaningfully assert things about, and so on. In the interest of minimally reproducible examples, and of making tests readable, it often makes sense to take an actual API response and delete a lot of its content, or even to fabricate one entirely.
+* It's good to keep an API mock fixed so you know exactly what is in it. If you re-recorded a Twitter API response of, say, the most recent 10 tweets with `#rstats`, the specific content will change every time you record it, so your tests can't say much about what is in the response without having to rewrite them every time too.
+* Some conditions (rate limiting, server errors, etc.) are difficult to test with real responses, but if you can manually create a API mock with, say, a 503 response status code and test how your code handles it, you can have confidence of how your package will respond when that rare event happens with the real API.
+* Re-recording all responses can make for a huge code diff, which can blow up your repository size and make code review harder.
+
+Moreover, we generally don't need to test what the server does with our requests. We're responsible for testing the R code on either side: (1) given some inputs, does my code make the correct HTTP request(s); and (2) does my code correctly handle the types of responses that the server can return? We often don't need to make real requests to test that.
+
+Sometimes it is more clear what you're testing if you focus only on the requests. One case is when the response itself isn't that interesting or doesn't tell you that the request did the correct thing. For example, if you're testing a POST request that alters the state of something on the server and returns 204 No Content status on success, nothing in the response itself (which would be stored in the mock file) tells you that the request you made was shaped correctly—the response has no content. A more transparent, readable test would just assert that the POST request was made to the right URL and had the expected request body.
+
+Another case where you might want to focus just on the request, without recording real API responses, is when you don't actually want to make the requests. Perhaps you're testing a function that would call `DELETE` on some resource. Or, to make it concrete, suppose you were testing a function that sends a tweet: you probably don't want to send a real test tweet out into the world.
+
+Here's a function that would send a tweet using the Twitter API. Consulting the [API docs](https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets), it looks like this is the request we'd make:
+
+```r
+send_tweet <- function(text) {
+  resp <- request("https://api.twitter.com/2/tweets") %>%
+    req_method("POST") %>%
+    req_body_json(list(text = text)) %>%
+    req_perform()
+
+  resp_body_json(resp)$data
+}
+```
+
+Of course, this is overly simplified. According to the docs, there are lots more arguments you would want to add, and also your real function would need to apply your OAuth token. If you were really writing this function (or broader package), you'd solve that. For the purposes of illustration here, let's assume that's taken care of.
+
+How do we test this without making a real request? First, let's run the function inside `without_internet()` so we can see what request it makes:
+
+```r
+without_internet({
+  send_tweet("Hello world!")
+})
+
+## Error: An unexpected request was made:
+## POST https://api.twitter.com/2/tweets {"text":"Hello world!"}
+## Run `rlang::last_error()` to see where the error occurred.
+```
+
+That looks right according to the API documentation. We can now turn this into a test that asserts we're making the correct request, using `expect_POST()`.
+
+```r
+without_internet({
+  test_that("We can send a tweet", {
+    expect_POST(
+      send_tweet("Hello world!"),
+      'https://api.twitter.com/2/tweets',
+      '{"text":"Hello world!"}'
+    )
+  })
+})
+
+## Test passed 🌈
+```
+
+`expect_POST()` (and the other `expect_VERB` functions) look for the request method, URL, and body, just as they are printed in the error message if the request is not caught by `expect_POST()`.
+
+If you write a test and it fails because the request that is made doesn't match what is expected, the test failure looks like this:
+
+```r
+without_internet({
+  test_that("We can send a tweet", {
+    expect_POST(
+      send_tweet("Goodbye world!"),
+      'https://api.twitter.com/2/tweets',
+      '{"text":"Hello world!"}'
+    )
+  })
+})
+
+## ── Failure (Line 3): We can send a tweet ───────────────────────────────────────
+## An unexpected request was made:
+##   Actual:   POST https://api.twitter.com/2/tweets {"text":"Goodbye world!"}
+##   Expected: POST https://api.twitter.com/2/tweets {"text":"Hello world!"}
+```
+
+Next, suppose we wanted to test how our code handles the API response. In our example, we aren't doing much, just extracting the "data" element from the response, but in practice there could be much more involved code to turn API responses into objects that make intuitive sense to R users.
+
+We can still set up this test without making a real request by creating a mock based on the API documentation, which includes a sample response. To start, let's switch from `without_internet()` to `with_mock_api()` and re-run the function:
+
+```r
+with_mock_api({
+  send_tweet("Hello world!")
+})
+
+## Error: An unexpected request was made:
+## POST https://api.twitter.com/2/tweets {"text":"Hello world!"}
+## Expected mock file: api.twitter.com/2/tweets-8d6065-POST.*
+## Run `rlang::last_error()` to see where the error occurred.
+```
+
+We got the same error message before, but there is an extra line telling us what mock file it was looking to load. If we take the JSON example response from the API documentation and put it in that location, `with_mock_api()` will load it.
+
+```r
+dir.create("tests/testthat/api.twitter.com/2", recursive = TRUE)
+cat('{
+  "data": {
+    "id": "1445880548472328192",
+    "text": "Hello world!"
+  }
+}', file = "tests/testthat/api.twitter.com/2/tweets-8d6065-POST.json")
+
+with_mock_api({
+  send_tweet("Hello world!")
+})
+
+## $id
+## [1] "1445880548472328192"
+##
+## $text
+## [1] "Hello world!"
+##
+```
+
+Now we can test that we can make that request and the mock response is loaded:
+
+```r
+with_mock_api({
+  test_that("We can send a tweet", {
+    expect_equal(
+      send_tweet("Hello world!")$text,
+      "Hello world!"
+    )
+  })
+})
+
+## Test passed 🥇
+```
+
+Because requests made in `with_mock_api()` that don't find a corresponding mock file raise the same error as `without_internet()`, we can combine mock tests and tests that assert that a request would be made:
+
+```r
+with_mock_api({
+  test_that("We can send a tweet", {
+    # This one has a mock file now
+    expect_equal(
+      send_tweet("Hello world!")$text,
+      "Hello world!"
+    )
+    # This one does not
+    expect_POST(
+      send_tweet("Goodbye world!"),
+      'https://api.twitter.com/2/tweets',
+      '{"text":"Goodbye world!"}'
+    )
+  })
+})
+
+## Test passed 🌈
+```
+
+For more examples of cases to test like this, see the [`httptest` vignette](https://enpiar.com/r/httptest/articles/httptest.html) and [this blog post](https://enpiar.com/2017/06/21/7-hard-testing-problems-made-easy-by-httptest/).
