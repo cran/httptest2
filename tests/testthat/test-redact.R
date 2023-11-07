@@ -3,18 +3,18 @@ d <- tempfile()
 with_mock_api({
   # Auth headers aren't recorded
   capture_while_mocking(simplify = FALSE, path = d, {
-    a <- request("api/") %>%
+    a <- request("https://test.api/") %>%
       req_headers(`Authorization` = "Bearer token") %>%
       req_perform()
   })
   test_that("The mock file does not have the request headers", {
     # In httr2, response objects do not include the request,
     # so by construction there won't be request headers
-    expect_false(any(grepl("Bearer token", readLines(file.path(d, "api.R")))))
+    expect_false(any(grepl("Bearer token", readLines(file.path(d, "test.api.R")))))
   })
   test_that("And the redacted .R mock can be loaded", {
     with_mock_path(d, {
-      b <- request("api/") %>%
+      b <- request("https://test.api/") %>%
         req_headers(`Authorization` = "Bearer token") %>%
         req_perform()
     })
@@ -22,7 +22,7 @@ with_mock_api({
   })
 
   # redact_cookies from response
-  c2_req <- request("http://httpbin.org/cookies/set") %>%
+  c2_req <- request("http://httpbin.not/cookies/set") %>%
     req_url_query(token = 12345)
   test_that("redact_cookies: the response has the set-cookie in the response", {
     capture_while_mocking(simplify = FALSE, path = d, {
@@ -42,7 +42,7 @@ with_mock_api({
     expect_length(
       grep(
         "REDACTED",
-        readLines(file.path(d, "httpbin.org", "cookies", "set-5b2631.R"))
+        readLines(file.path(d, "httpbin.not", "cookies", "set-5b2631.R"))
       ),
       1
     )
@@ -57,7 +57,7 @@ with_mock_api({
   })
 
   # HTTP auth credentials aren't recorded
-  auth_req <- request("http://httpbin.org/basic-auth/user/passwd") %>%
+  auth_req <- request("http://httpbin.not/basic-auth/user/passwd") %>%
     # Slight hack: the mock was recorded with user:passwd to get a 200 response
     # but then the grepl would fail because the password is in the URL
     # (a feature of httpbin)
@@ -69,7 +69,7 @@ with_mock_api({
   test_that("there is no password in the mock", {
     expect_false(any(grepl(
       "SeCrEtPaSsWoRd!",
-      readLines(file.path(d, "httpbin.org", "basic-auth", "user", "passwd.R"))
+      readLines(file.path(d, "httpbin.not", "basic-auth", "user", "passwd.R"))
     )))
   })
   test_that("And the redacted .R mock can be loaded", {
@@ -131,43 +131,55 @@ with_mock_api({
     expect_identical(resp_body_json(r), list(loaded = TRUE))
   })
 
-  a <- request("api/") %>%
+  a <- request("https://test.api/") %>%
     req_headers(`Authorization` = "Bearer token") %>%
     req_perform()
   test_that("gsub_response", {
     asub <- gsub_response(a, "api", "OTHER")
-    expect_identical(asub$url, "OTHER/")
-    expect_identical(resp_body_json(asub), list(value = "OTHER/object1/"))
+    expect_identical(asub$url, "https://test.OTHER/")
+    expect_identical(resp_body_json(asub), list(value = "https://test.OTHER/object1/"))
   })
   test_that("as.redactor", {
     a2 <- prepare_redactor(~ gsub_response(., "api", "OTHER"))(a)
-    expect_identical(resp_body_json(a2), list(value = "OTHER/object1/"))
+    expect_identical(resp_body_json(a2), list(value = "https://test.OTHER/object1/"))
   })
 
-  loc <- request("http://httpbin.org/response-headers") %>%
-    req_url_query(Location = "http://httpbin.org/status/201") %>%
+  loc <- request("http://httpbin.not/response-headers") %>%
+    req_url_query(Location = "http://httpbin.not/status/201") %>%
     req_perform()
   loc_sub <- gsub_response(
-    loc, "http://httpbin.org/status/201",
-    "http://httpbin.org/status/404"
+    loc, "http://httpbin.not/status/201",
+    "http://httpbin.not/status/404"
   )
   test_that("gsub_response touches Location header", {
     expect_identical(
       resp_header(loc_sub, "location"),
-      "http://httpbin.org/status/404"
+      "http://httpbin.not/status/404"
     )
     expect_identical(
       resp_body_json(loc_sub)$Location,
-      "http://httpbin.org/status/404"
+      "http://httpbin.not/status/404"
     )
   })
   test_that("gsub_response handles URL encoding", {
     skip("TODO: handle URL escaping")
     expect_identical(
       loc_sub$url,
-      "http://httpbin.org/response-headers?Location=http%3A%2F%2Fhttpbin.org%2Fstatus%2F404"
+      "http://httpbin.not/response-headers?Location=http%3A%2F%2Fhttpbin.not%2Fstatus%2F404"
     )
   })
+})
+
+test_that("gsub_response handles empty response bodies (#20)", {
+  with_redactor(
+    function(resp) gsub_response(resp, "status", "code"),
+    capture_requests({
+      # Prior to the fix, the redactor errored here on retrieving an empty body
+      r <- request(httpbin$url("/status/204")) %>% req_perform()
+    })
+  )
+  # Nothing here
+  expect_length(r$body, 0)
 })
 
 test_that("chain_redactors", {

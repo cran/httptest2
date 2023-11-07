@@ -22,9 +22,6 @@ a .R file using \code{\link[base:dput]{base::dput()}}.}
 here is the opposite of \code{.mockPaths()} so that the tests inside of
 \code{with_mock_dir()} are fully isolated.}
 }
-\value{
-The result of \code{expr}
-}
 \description{
 This context will switch the \code{\link[=.mockPaths]{.mockPaths()}} to \code{tests/testthat/dir}
 (and then resets it to what it was before).

@@ -47,7 +47,7 @@ header_apply <- function(response, headers, FUN, ...) {
 within_body_text <- function(response, FUN) {
   # This could be applied to a httr2_request object;
   # only do work on a httr2_response
-  if (inherits(response, "httr2_response")) {
+  if (inherits(response, "httr2_response") && length(response$body)) {
     old <- resp_body_string(response)
     new <- FUN(old)
     response$body <- charToRaw(new)
@@ -101,7 +101,7 @@ gsub_response <- function(response, pattern, replacement, ...) {
 #' to `function (response) redact_headers(response, "X-Custom-Header")`. This
 #' allows you to do
 #' `set_redactor(~ redact_headers(., "X-Custom-Header"))`.
-#' @param expr Partial expression to turn into a function
+#' @param fmla Partial expression (a `formula`) to turn into a function
 #' @return A `function`.
 #' @rdname as-redactor
 #' @importFrom stats terms

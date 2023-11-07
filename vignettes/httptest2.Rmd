@@ -234,7 +234,7 @@ without_internet({
 
 `expect_POST()` (and the other `expect_VERB` functions) look for the request method, URL, and body, just as they are printed in the error message if the request is not caught by `expect_POST()`.
 
-If you write a test and it fails because the request that is made doesn't match what is expected, the test failure looks like this:
+If the test fails because the request that is made doesn't match what we expected, it looks like this:
 
 ```r
 without_internet({

@@ -14,25 +14,38 @@
 
 <title>httptest: A Test Environment for HTTP Requests in R</title>
 
-<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
 
 <style type="text/css">
-  code{white-space: pre-wrap;}
-  span.smallcaps{font-variant: small-caps;}
-  span.underline{text-decoration: underline;}
-  div.column{display: inline-block; vertical-align: top; width: 50%;}
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-  ul.task-list{list-style: none;}
-    </style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
 
 
 <style type="text/css">
-  code {
-    white-space: pre;
-  }
-  .sourceCode {
-    overflow: visible;
-  }
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
@@ -50,55 +63,54 @@ pre > code.sourceCode { white-space: pre-wrap; }
 pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
-  { counter-reset: source-line 0; }
+{ counter-reset: source-line 0; }
 pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
+{ position: relative; left: -4em; counter-increment: source-line; }
 pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
 div.sourceCode
-  {   }
+{ }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
 </style>
 <script>
 // apply pandoc div.sourceCode style to pre.sourceCode instead
@@ -107,13 +119,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   for (var i = 0; i < sheets.length; i++) {
     if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
     try { var rules = sheets[i].cssRules; } catch (e) { continue; }
-    for (var j = 0; j < rules.length; j++) {
+    var j = 0;
+    while (j < rules.length) {
       var rule = rules[j];
       // check if there is a div.sourceCode rule
-      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -125,7 +144,187 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
 
 
 
@@ -137,79 +336,132 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<h1 class="title toc-ignore">httptest: A Test Environment for HTTP Requests in R</h1>
+<h1 class="title toc-ignore">httptest: A Test Environment for HTTP
+Requests in R</h1>
 
 
 
-<p>Testing code and packages that communicate with remote servers can be painful. Dealing with authentication, bootstrapping server state, cleaning up objects that may get created during the test run, network flakiness, and other complications can make testing seem too costly to bother with. But it doesn’t need to be that hard. The <code>httptest2</code> package lets you test R code that constructs API requests and handles their responses, all without requiring access to the remote service during the test run. This makes tests easy to write and fast to run.</p>
-<p>This vignette covers some of the core features of the <code>httptest2</code> package, focusing on how to mock HTTP responses, how to make other assertions about requests, and how to record real requests for future use as mocks. Note that <code>httptest2</code> requires the <code>testthat</code> package, and it follows the testing conventions and interfaces defined there, extending them with some additional wrappers and expectations. If you’re not familiar with <code>testthat</code>, see the <a href="https://r-pkgs.org/tests.html">“Testing” chapter</a> chapter of Hadley Wickham’s <em>R Packages</em> book.</p>
-<p><code>httptest2</code> is designed for use with packages that rely on the <a href="https://httr2.r-lib.org/"><code>httr2</code></a> requests library—it is a bridge between <code>httr2</code> and <code>testthat</code>. If you’re using <a href="https://httr.r-lib.org/"><code>httr</code></a>, use <a href="https://enpiar.com/r/httptest/"><code>httptest</code></a>, on which this package is based.</p>
+<p>Testing code and packages that communicate with remote servers can be
+painful. Dealing with authentication, bootstrapping server state,
+cleaning up objects that may get created during the test run, network
+flakiness, and other complications can make testing seem too costly to
+bother with. But it doesn’t need to be that hard. The
+<code>httptest2</code> package lets you test R code that constructs API
+requests and handles their responses, all without requiring access to
+the remote service during the test run. This makes tests easy to write
+and fast to run.</p>
+<p>This vignette covers some of the core features of the
+<code>httptest2</code> package, focusing on how to mock HTTP responses,
+how to make other assertions about requests, and how to record real
+requests for future use as mocks. Note that <code>httptest2</code>
+requires the <code>testthat</code> package, and it follows the testing
+conventions and interfaces defined there, extending them with some
+additional wrappers and expectations. If you’re not familiar with
+<code>testthat</code>, see the <a href="https://r-pkgs.org/tests.html">“Testing” chapter</a> chapter of
+Hadley Wickham’s <em>R Packages</em> book.</p>
+<p><code>httptest2</code> is designed for use with packages that rely on
+the <a href="https://httr2.r-lib.org/"><code>httr2</code></a> requests
+library—it is a bridge between <code>httr2</code> and
+<code>testthat</code>. If you’re using <a href="https://httr.r-lib.org/"><code>httr</code></a>, use <a href="https://enpiar.com/r/httptest/"><code>httptest</code></a>, on
+which this package is based.</p>
 <div id="getting-started" class="section level2">
 <h2>Getting started</h2>
-<p>First, we need to add <code>httptest2</code> to our package test suite. Once you’ve configured your package to use <code>testthat</code> (<code>usethis::use_testthat()</code> is one way), run <code>httptest2::use_httptest2()</code>. This adds <code>httptest2</code> to your package <code>DESCRIPTION</code> and makes sure it is loaded in your test setup code.</p>
-<p><code>httptest2</code> provides several contexts, which are “with”-style functions that you wrap around other code you want to execute.</p>
+<p>First, we need to add <code>httptest2</code> to our package test
+suite. Once you’ve configured your package to use <code>testthat</code>
+(<code>usethis::use_testthat()</code> is one way), run
+<code>httptest2::use_httptest2()</code>. This adds
+<code>httptest2</code> to your package <code>DESCRIPTION</code> and
+makes sure it is loaded in your test setup code.</p>
+<p><code>httptest2</code> provides several contexts, which are
+“with”-style functions that you wrap around other code you want to
+execute.</p>
 <ul>
-<li><code>without_internet()</code>: any <code>httr2</code> request performed will raise an informative error</li>
-<li><code>with_mock_api()</code>: requests will look for an associated mock file to return instead of making a real request; if none found, it will raise an informative error</li>
-<li><code>capture_requests()</code>: real requests will be saved to mock files so that <code>with_mock_api()</code> can load them</li>
-<li><code>with_mock_dir()</code>: wrapper around <code>capture_requests()</code> and <code>with_mock_api()</code>, switching between them based on the existence of the given directory. If it exists, <code>with_mock_api()</code> will use it; if not, real requests will be made and responses will be recorded into it so that subsequent runs will use them as mocks. To re-record real responses, delete the directory.</li>
+<li><code>without_internet()</code>: any <code>httr2</code> request
+performed will raise an informative error</li>
+<li><code>with_mock_api()</code>: requests will look for an associated
+mock file to return instead of making a real request; if none found, it
+will raise an informative error</li>
+<li><code>capture_requests()</code>: real requests will be saved to mock
+files so that <code>with_mock_api()</code> can load them</li>
+<li><code>with_mock_dir()</code>: wrapper around
+<code>capture_requests()</code> and <code>with_mock_api()</code>,
+switching between them based on the existence of the given directory. If
+it exists, <code>with_mock_api()</code> will use it; if not, real
+requests will be made and responses will be recorded into it so that
+subsequent runs will use them as mocks. To re-record real responses,
+delete the directory.</li>
 </ul>
 </div>
 <div id="basic-tests-from-a-live-server" class="section level2">
 <h2>Basic tests from a live server</h2>
-<p>A good place to start is with a small number of end-to-end tests: things that you can run against the real API to confirm that the whole workflow functions correctly. To do this, we’ll use the <code>with_mock_dir()</code> context.</p>
-<p>Let’s suppose we’re making a package from the first example from the <code>httr2</code> vignette on <a href="https://httr2.r-lib.org/articles/wrapping-apis.html">wrapping APIs</a>, which wraps the <a href="https://fakerapi.it/en">faker API</a>:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>faker_person <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">gender =</span> <span class="cn">NULL</span>, <span class="at">birthday_start =</span> <span class="cn">NULL</span>, <span class="at">birthday_end =</span> <span class="cn">NULL</span>, <span class="at">quantity =</span> <span class="dv">1</span>, <span class="at">locale =</span> <span class="st">&quot;en_US&quot;</span>, <span class="at">seed =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">faker</span>(</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;persons&quot;</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> gender,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">birthday_start =</span> birthday_start,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">birthday_end =</span> birthday_end,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">quantity =</span> quantity,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">locale =</span> locale,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> seed</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>faker <span class="ot">&lt;-</span> <span class="cf">function</span>(resource, ..., <span class="at">quantity =</span> <span class="dv">1</span>, <span class="at">locale =</span> <span class="st">&quot;en_US&quot;</span>, <span class="at">seed =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    ...,</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">quantity =</span> quantity,</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">locale =</span> locale,</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> seed</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(params) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;_&quot;</span>, <span class="fu">names</span>(params))</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">request</span>(<span class="st">&quot;https://fakerapi.it/api/v1&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">req_url_path_append</span>(resource) <span class="sc">%&gt;%</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">req_url_query</span>(<span class="sc">!!!</span>params) <span class="sc">%&gt;%</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">req_user_agent</span>(<span class="st">&quot;my_package_name (http://my.package.web.site)&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">req_perform</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">resp_body_json</span>()</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<p>We could add a test file at <code>tests/testthat/test-person.R</code> in our package and put this test in it:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">test_that</span>(<span class="st">&quot;We can get people&quot;</span>, {</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect_length</span>(<span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>), <span class="dv">2</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
-<p>If we run that test, it will make a live API call and return a response containing 2 fake people. Every time we run it, it will make an API request, and if there is no network connection, or the API happens to be down, the test will fail.</p>
-<p>Instead, let’s wrap this test in <code>with_mock_dir()</code> so that we can record that response the first time we run it and then load it as a mock every time after.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with_mock_dir</span>(<span class="st">&quot;person&quot;</span>, {</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can get people&quot;</span>, {</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect_length</span>(<span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>), <span class="dv">2</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
-<p>To illustrate how that works, let’s run that again outside of the test and with some verbose messages turned on.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">httptest2.verbose =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">with_mock_dir</span>(<span class="st">&quot;person&quot;</span>, {</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">system.time</span>(peeps <span class="ot">&lt;-</span> <span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>))</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Recording responses to tests/testthat/person</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="do">## Writing /Users/you/fakerpkg/tests/testthat/person/fakerapi.it/api/v1/persons-fdcc43.json</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="do">##    user  system elapsed</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="do">##   0.022   0.003   0.611</span></span></code></pre></div>
-<p>Because <code>tests/testthat/person</code> does not exist, it makes a real request, which takes around 600 milliseconds. And now if we look at the file system, we see a new file</p>
+<p>A good place to start is with a small number of end-to-end tests:
+things that you can run against the real API to confirm that the whole
+workflow functions correctly. To do this, we’ll use the
+<code>with_mock_dir()</code> context.</p>
+<p>Let’s suppose we’re making a package from the first example from the
+<code>httr2</code> vignette on <a href="https://httr2.r-lib.org/articles/wrapping-apis.html">wrapping
+APIs</a>, which wraps the <a href="https://fakerapi.it/en">faker
+API</a>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>faker_person <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">gender =</span> <span class="cn">NULL</span>, <span class="at">birthday_start =</span> <span class="cn">NULL</span>, <span class="at">birthday_end =</span> <span class="cn">NULL</span>, <span class="at">quantity =</span> <span class="dv">1</span>, <span class="at">locale =</span> <span class="st">&quot;en_US&quot;</span>, <span class="at">seed =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="fu">faker</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    <span class="st">&quot;persons&quot;</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    <span class="at">gender =</span> gender,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>    <span class="at">birthday_start =</span> birthday_start,</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>    <span class="at">birthday_end =</span> birthday_end,</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>    <span class="at">quantity =</span> quantity,</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>    <span class="at">locale =</span> locale,</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>    <span class="at">seed =</span> seed</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>  )</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>}</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>faker <span class="ot">&lt;-</span> <span class="cf">function</span>(resource, ..., <span class="at">quantity =</span> <span class="dv">1</span>, <span class="at">locale =</span> <span class="st">&quot;en_US&quot;</span>, <span class="at">seed =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>    ...,</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>    <span class="at">quantity =</span> quantity,</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>    <span class="at">locale =</span> locale,</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>    <span class="at">seed =</span> seed</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  )</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>  <span class="fu">names</span>(params) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;_&quot;</span>, <span class="fu">names</span>(params))</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>  <span class="fu">request</span>(<span class="st">&quot;https://fakerapi.it/api/v1&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>    <span class="fu">req_url_path_append</span>(resource) <span class="sc">%&gt;%</span></span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>    <span class="fu">req_url_query</span>(<span class="sc">!!!</span>params) <span class="sc">%&gt;%</span></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>    <span class="fu">req_user_agent</span>(<span class="st">&quot;my_package_name (http://my.package.web.site)&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>    <span class="fu">req_perform</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>    <span class="fu">resp_body_json</span>()</span>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a>}</span></code></pre></div>
+<p>We could add a test file at <code>tests/testthat/test-person.R</code>
+in our package and put this test in it:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">test_that</span>(<span class="st">&quot;We can get people&quot;</span>, {</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="fu">expect_length</span>(<span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>), <span class="dv">2</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>})</span></code></pre></div>
+<p>If we run that test, it will make a live API call and return a
+response containing 2 fake people. Every time we run it, it will make an
+API request, and if there is no network connection, or the API happens
+to be down, the test will fail.</p>
+<p>Instead, let’s wrap this test in <code>with_mock_dir()</code> so that
+we can record that response the first time we run it and then load it as
+a mock every time after.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">with_mock_dir</span>(<span class="st">&quot;person&quot;</span>, {</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can get people&quot;</span>, {</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>    <span class="fu">expect_length</span>(<span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>), <span class="dv">2</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  })</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>})</span></code></pre></div>
+<p>To illustrate how that works, let’s run that again outside of the
+test and with some verbose messages turned on.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">options</span>(<span class="at">httptest2.verbose =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">with_mock_dir</span>(<span class="st">&quot;person&quot;</span>, {</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="fu">system.time</span>(peeps <span class="ot">&lt;-</span> <span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>))</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>})</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="do">## Recording responses to tests/testthat/person</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="do">## Writing /Users/you/fakerpkg/tests/testthat/person/fakerapi.it/api/v1/persons-fdcc43.json</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="do">##    user  system elapsed</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="do">##   0.022   0.003   0.611</span></span></code></pre></div>
+<p>Because <code>tests/testthat/person</code> does not exist, it makes a
+real request, which takes around 600 milliseconds. And now if we look at
+the file system, we see a new file</p>
 <pre><code>tests/testthat/person/fakerapi.it/api/v1/persons-fdcc43.json</code></pre>
 <p>which contains the JSON response body from our request:</p>
 <pre><code>{
@@ -229,150 +481,239 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
         ...
     ]
 }</code></pre>
-<p>Note how the file path matches the request URL. Requests are translated to mock file paths according to several rules that incorporate the request method, URL, query parameters, and body. First, the request protocol is removed from the URL. Second, if the request URL contains a query string, it will be popped off, hashed by <code>digest::digest()</code>, and the first six characters appended to the file being read. Third, request bodies are similarly hashed and appended. Finally, if a request method other than GET is used it will be appended to the end of the end of the file name.</p>
-<p>If you want to know what request was made, you can run the code inside <code>without_internet()</code>, and the error message will tell you:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">without_internet</span>({</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="do">## Error: An unexpected request was made:</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="do">## GET https://fakerapi.it/api/v1/persons?_gender=female&amp;_quantity=2&amp;_locale=en_US</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Run `rlang::last_error()` to see where the error occurred.</span></span></code></pre></div>
-<p>Back to <code>with_mock_dir()</code>: the next time we run the same code, we’ll see that it loads the mock file.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with_mock_dir</span>(<span class="st">&quot;person&quot;</span>, {</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">system.time</span>(peeps2 <span class="ot">&lt;-</span> <span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>))</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="do">## Using mocks found in tests/testthat/person</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="do">## Reading /Users/you/fakerpkg/tests/testthat/person/fakerapi.it/api/v1/persons-fdcc43.json</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="do">##    user  system elapsed</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="do">##   0.011   0.000   0.011</span></span></code></pre></div>
-<p>Because the <code>person</code> directory exists now, <code>with_mock_dir()</code> uses the previously recorded mocks, matches our exact query with the one we did before, and returns it instantly, without making a network connection. We can see that it is using the previously recorded response because the result is identical—with the faker API, you get different data back for every request.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">identical</span>(peeps, peeps2)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] TRUE</span></span></code></pre></div>
-<p>Note that none of the test code inside <code>with_mock_dir()</code> looks any different from how you’d write it if you were testing against a live server using just <code>testthat</code>. The goal is to make your tests just as natural to write as if you were using your package normally.</p>
+<p>Note how the file path matches the request URL. Requests are
+translated to mock file paths according to several rules that
+incorporate the request method, URL, query parameters, and body. First,
+the request protocol is removed from the URL. Second, if the request URL
+contains a query string, it will be popped off, hashed by
+<code>digest::digest()</code>, and the first six characters appended to
+the file being read. Third, request bodies are similarly hashed and
+appended. Finally, if a request method other than GET is used it will be
+appended to the end of the end of the file name.</p>
+<p>If you want to know what request was made, you can run the code
+inside <code>without_internet()</code>, and the error message will tell
+you:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">without_internet</span>({</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>})</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="do">## Error: An unexpected request was made:</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="do">## GET https://fakerapi.it/api/v1/persons?_gender=female&amp;_quantity=2&amp;_locale=en_US</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="do">## Run `rlang::last_error()` to see where the error occurred.</span></span></code></pre></div>
+<p>Back to <code>with_mock_dir()</code>: the next time we run the same
+code, we’ll see that it loads the mock file.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">with_mock_dir</span>(<span class="st">&quot;person&quot;</span>, {</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">system.time</span>(peeps2 <span class="ot">&lt;-</span> <span class="fu">faker_person</span>(<span class="st">&quot;female&quot;</span>, <span class="at">quantity =</span> <span class="dv">2</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>})</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="do">## Using mocks found in tests/testthat/person</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="do">## Reading /Users/you/fakerpkg/tests/testthat/person/fakerapi.it/api/v1/persons-fdcc43.json</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="do">##    user  system elapsed</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="do">##   0.011   0.000   0.011</span></span></code></pre></div>
+<p>Because the <code>person</code> directory exists now,
+<code>with_mock_dir()</code> uses the previously recorded mocks, matches
+our exact query with the one we did before, and returns it instantly,
+without making a network connection. We can see that it is using the
+previously recorded response because the result is identical—with the
+faker API, you get different data back for every request.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">identical</span>(peeps, peeps2)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="do">## [1] TRUE</span></span></code></pre></div>
+<p>Note that none of the test code inside <code>with_mock_dir()</code>
+looks any different from how you’d write it if you were testing against
+a live server using just <code>testthat</code>. The goal is to make your
+tests just as natural to write as if you were using your package
+normally.</p>
 <blockquote>
-<p>Do your recorded responses contain sensitive information? Are they unnecessarily large? See <code>vignette(&quot;redacting&quot;, package = &quot;httptest2&quot;)</code> for how to trim and sanitize recorded mocks.</p>
+<p>Do your recorded responses contain sensitive information? Are they
+unnecessarily large? See
+<code>vignette(&quot;redacting&quot;, package = &quot;httptest2&quot;)</code> for how to
+trim and sanitize recorded mocks.</p>
 </blockquote>
 </div>
 <div id="going-deeper" class="section level2">
 <h2>Going deeper</h2>
-<p><code>with_mock_dir()</code> is convenient to use, but you probably don’t want all of your tests to be based on real requests. Among the reasons:</p>
+<p><code>with_mock_dir()</code> is convenient to use, but you probably
+don’t want all of your tests to be based on real requests. Among the
+reasons:</p>
 <ul>
-<li>Some API responses contain way more content than is necessary to test your R code around them: 100 records when 2 will suffice, include metadata that you don’t care about and can’t meaningfully assert things about, and so on. In the interest of minimally reproducible examples, and of making tests readable, it often makes sense to take an actual API response and delete a lot of its content, or even to fabricate one entirely.</li>
-<li>It’s good to keep an API mock fixed so you know exactly what is in it. If you re-recorded a Twitter API response of, say, the most recent 10 tweets with <code>#rstats</code>, the specific content will change every time you record it, so your tests can’t say much about what is in the response without having to rewrite them every time too.</li>
-<li>Some conditions (rate limiting, server errors, etc.) are difficult to test with real responses, but if you can manually create a API mock with, say, a 503 response status code and test how your code handles it, you can have confidence of how your package will respond when that rare event happens with the real API.</li>
-<li>Re-recording all responses can make for a huge code diff, which can blow up your repository size and make code review harder.</li>
+<li>Some API responses contain way more content than is necessary to
+test your R code around them: 100 records when 2 will suffice, include
+metadata that you don’t care about and can’t meaningfully assert things
+about, and so on. In the interest of minimally reproducible examples,
+and of making tests readable, it often makes sense to take an actual API
+response and delete a lot of its content, or even to fabricate one
+entirely.</li>
+<li>It’s good to keep an API mock fixed so you know exactly what is in
+it. If you re-recorded a Twitter API response of, say, the most recent
+10 tweets with <code>#rstats</code>, the specific content will change
+every time you record it, so your tests can’t say much about what is in
+the response without having to rewrite them every time too.</li>
+<li>Some conditions (rate limiting, server errors, etc.) are difficult
+to test with real responses, but if you can manually create a API mock
+with, say, a 503 response status code and test how your code handles it,
+you can have confidence of how your package will respond when that rare
+event happens with the real API.</li>
+<li>Re-recording all responses can make for a huge code diff, which can
+blow up your repository size and make code review harder.</li>
 </ul>
-<p>Moreover, we generally don’t need to test what the server does with our requests. We’re responsible for testing the R code on either side: (1) given some inputs, does my code make the correct HTTP request(s); and (2) does my code correctly handle the types of responses that the server can return? We often don’t need to make real requests to test that.</p>
-<p>Sometimes it is more clear what you’re testing if you focus only on the requests. One case is when the response itself isn’t that interesting or doesn’t tell you that the request did the correct thing. For example, if you’re testing a POST request that alters the state of something on the server and returns 204 No Content status on success, nothing in the response itself (which would be stored in the mock file) tells you that the request you made was shaped correctly—the response has no content. A more transparent, readable test would just assert that the POST request was made to the right URL and had the expected request body.</p>
-<p>Another case where you might want to focus just on the request, without recording real API responses, is when you don’t actually want to make the requests. Perhaps you’re testing a function that would call <code>DELETE</code> on some resource. Or, to make it concrete, suppose you were testing a function that sends a tweet: you probably don’t want to send a real test tweet out into the world.</p>
-<p>Here’s a function that would send a tweet using the Twitter API. Consulting the <a href="https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets">API docs</a>, it looks like this is the request we’d make:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>send_tweet <span class="ot">&lt;-</span> <span class="cf">function</span>(text) {</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  resp <span class="ot">&lt;-</span> <span class="fu">request</span>(<span class="st">&quot;https://api.twitter.com/2/tweets&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">req_method</span>(<span class="st">&quot;POST&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">req_body_json</span>(<span class="fu">list</span>(<span class="at">text =</span> text)) <span class="sc">%&gt;%</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">req_perform</span>()</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">resp_body_json</span>(resp)<span class="sc">$</span>data</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<p>Of course, this is overly simplified. According to the docs, there are lots more arguments you would want to add, and also your real function would need to apply your OAuth token. If you were really writing this function (or broader package), you’d solve that. For the purposes of illustration here, let’s assume that’s taken care of.</p>
-<p>How do we test this without making a real request? First, let’s run the function inside <code>without_internet()</code> so we can see what request it makes:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">without_internet</span>({</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="do">## Error: An unexpected request was made:</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="do">## POST https://api.twitter.com/2/tweets {&quot;text&quot;:&quot;Hello world!&quot;}</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Run `rlang::last_error()` to see where the error occurred.</span></span></code></pre></div>
-<p>That looks right according to the API documentation. We can now turn this into a test that asserts we’re making the correct request, using <code>expect_POST()</code>.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">without_internet</span>({</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can send a tweet&quot;</span>, {</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect_POST</span>(</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>),</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;https://api.twitter.com/2/tweets&#39;</span>,</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;{&quot;text&quot;:&quot;Hello world!&quot;}&#39;</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="do">## Test passed 🌈</span></span></code></pre></div>
-<p><code>expect_POST()</code> (and the other <code>expect_VERB</code> functions) look for the request method, URL, and body, just as they are printed in the error message if the request is not caught by <code>expect_POST()</code>.</p>
-<p>If you write a test and it fails because the request that is made doesn’t match what is expected, the test failure looks like this:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">without_internet</span>({</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can send a tweet&quot;</span>, {</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect_POST</span>(</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Goodbye world!&quot;</span>),</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;https://api.twitter.com/2/tweets&#39;</span>,</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;{&quot;text&quot;:&quot;Hello world!&quot;}&#39;</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="do">## ── Failure (Line 3): We can send a tweet ───────────────────────────────────────</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="do">## An unexpected request was made:</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="do">##   Actual:   POST https://api.twitter.com/2/tweets {&quot;text&quot;:&quot;Goodbye world!&quot;}</span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="do">##   Expected: POST https://api.twitter.com/2/tweets {&quot;text&quot;:&quot;Hello world!&quot;}</span></span></code></pre></div>
-<p>Next, suppose we wanted to test how our code handles the API response. In our example, we aren’t doing much, just extracting the “data” element from the response, but in practice there could be much more involved code to turn API responses into objects that make intuitive sense to R users.</p>
-<p>We can still set up this test without making a real request by creating a mock based on the API documentation, which includes a sample response. To start, let’s switch from <code>without_internet()</code> to <code>with_mock_api()</code> and re-run the function:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with_mock_api</span>({</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="do">## Error: An unexpected request was made:</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="do">## POST https://api.twitter.com/2/tweets {&quot;text&quot;:&quot;Hello world!&quot;}</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Expected mock file: api.twitter.com/2/tweets-8d6065-POST.*</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="do">## Run `rlang::last_error()` to see where the error occurred.</span></span></code></pre></div>
-<p>We got the same error message before, but there is an extra line telling us what mock file it was looking to load. If we take the JSON example response from the API documentation and put it in that location, <code>with_mock_api()</code> will load it.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">&quot;tests/testthat/api.twitter.com/2&quot;</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&#39;{</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="st">  &quot;data&quot;: {</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;id&quot;: &quot;1445880548472328192&quot;,</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="st">    &quot;text&quot;: &quot;Hello world!&quot;</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="st">}&#39;</span>, <span class="at">file =</span> <span class="st">&quot;tests/testthat/api.twitter.com/2/tweets-8d6065-POST.json&quot;</span>)</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="fu">with_mock_api</span>({</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="do">## $id</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] &quot;1445880548472328192&quot;</span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="do">##</span></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="do">## $text</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="do">## [1] &quot;Hello world!&quot;</span></span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="do">##</span></span></code></pre></div>
-<p>Now we can test that we can make that request and the mock response is loaded:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with_mock_api</span>({</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can send a tweet&quot;</span>, {</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect_equal</span>(</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)<span class="sc">$</span>text,</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;Hello world!&quot;</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="do">## Test passed 🥇</span></span></code></pre></div>
-<p>Because requests made in <code>with_mock_api()</code> that don’t find a corresponding mock file raise the same error as <code>without_internet()</code>, we can combine mock tests and tests that assert that a request would be made:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with_mock_api</span>({</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can send a tweet&quot;</span>, {</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This one has a mock file now</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect_equal</span>(</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)<span class="sc">$</span>text,</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;Hello world!&quot;</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This one does not</span></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect_POST</span>(</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Goodbye world!&quot;</span>),</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;https://api.twitter.com/2/tweets&#39;</span>,</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;{&quot;text&quot;:&quot;Goodbye world!&quot;}&#39;</span></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="do">## Test passed 🌈</span></span></code></pre></div>
-<p>For more examples of cases to test like this, see the <a href="https://enpiar.com/r/httptest/articles/httptest.html"><code>httptest</code> vignette</a> and <a href="https://enpiar.com/2017/06/21/7-hard-testing-problems-made-easy-by-httptest/">this blog post</a>.</p>
+<p>Moreover, we generally don’t need to test what the server does with
+our requests. We’re responsible for testing the R code on either side:
+(1) given some inputs, does my code make the correct HTTP request(s);
+and (2) does my code correctly handle the types of responses that the
+server can return? We often don’t need to make real requests to test
+that.</p>
+<p>Sometimes it is more clear what you’re testing if you focus only on
+the requests. One case is when the response itself isn’t that
+interesting or doesn’t tell you that the request did the correct thing.
+For example, if you’re testing a POST request that alters the state of
+something on the server and returns 204 No Content status on success,
+nothing in the response itself (which would be stored in the mock file)
+tells you that the request you made was shaped correctly—the response
+has no content. A more transparent, readable test would just assert that
+the POST request was made to the right URL and had the expected request
+body.</p>
+<p>Another case where you might want to focus just on the request,
+without recording real API responses, is when you don’t actually want to
+make the requests. Perhaps you’re testing a function that would call
+<code>DELETE</code> on some resource. Or, to make it concrete, suppose
+you were testing a function that sends a tweet: you probably don’t want
+to send a real test tweet out into the world.</p>
+<p>Here’s a function that would send a tweet using the Twitter API.
+Consulting the <a href="https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets">API
+docs</a>, it looks like this is the request we’d make:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>send_tweet <span class="ot">&lt;-</span> <span class="cf">function</span>(text) {</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  resp <span class="ot">&lt;-</span> <span class="fu">request</span>(<span class="st">&quot;https://api.twitter.com/2/tweets&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>    <span class="fu">req_method</span>(<span class="st">&quot;POST&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>    <span class="fu">req_body_json</span>(<span class="fu">list</span>(<span class="at">text =</span> text)) <span class="sc">%&gt;%</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>    <span class="fu">req_perform</span>()</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="fu">resp_body_json</span>(resp)<span class="sc">$</span>data</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>}</span></code></pre></div>
+<p>Of course, this is overly simplified. According to the docs, there
+are lots more arguments you would want to add, and also your real
+function would need to apply your OAuth token. If you were really
+writing this function (or broader package), you’d solve that. For the
+purposes of illustration here, let’s assume that’s taken care of.</p>
+<p>How do we test this without making a real request? First, let’s run
+the function inside <code>without_internet()</code> so we can see what
+request it makes:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">without_internet</span>({</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>})</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="do">## Error: An unexpected request was made:</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="do">## POST https://api.twitter.com/2/tweets {&quot;text&quot;:&quot;Hello world!&quot;}</span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="do">## Run `rlang::last_error()` to see where the error occurred.</span></span></code></pre></div>
+<p>That looks right according to the API documentation. We can now turn
+this into a test that asserts we’re making the correct request, using
+<code>expect_POST()</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">without_internet</span>({</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can send a tweet&quot;</span>, {</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>    <span class="fu">expect_POST</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>),</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>      <span class="st">&#39;https://api.twitter.com/2/tweets&#39;</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>      <span class="st">&#39;{&quot;text&quot;:&quot;Hello world!&quot;}&#39;</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>    )</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  })</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>})</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="do">## Test passed 🌈</span></span></code></pre></div>
+<p><code>expect_POST()</code> (and the other <code>expect_VERB</code>
+functions) look for the request method, URL, and body, just as they are
+printed in the error message if the request is not caught by
+<code>expect_POST()</code>.</p>
+<p>If the test fails because the request that is made doesn’t match what
+we expected, it looks like this:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">without_internet</span>({</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can send a tweet&quot;</span>, {</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>    <span class="fu">expect_POST</span>(</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Goodbye world!&quot;</span>),</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>      <span class="st">&#39;https://api.twitter.com/2/tweets&#39;</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>      <span class="st">&#39;{&quot;text&quot;:&quot;Hello world!&quot;}&#39;</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>    )</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  })</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>})</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="do">## ── Failure (Line 3): We can send a tweet ───────────────────────────────────────</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="do">## An unexpected request was made:</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="do">##   Actual:   POST https://api.twitter.com/2/tweets {&quot;text&quot;:&quot;Goodbye world!&quot;}</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="do">##   Expected: POST https://api.twitter.com/2/tweets {&quot;text&quot;:&quot;Hello world!&quot;}</span></span></code></pre></div>
+<p>Next, suppose we wanted to test how our code handles the API
+response. In our example, we aren’t doing much, just extracting the
+“data” element from the response, but in practice there could be much
+more involved code to turn API responses into objects that make
+intuitive sense to R users.</p>
+<p>We can still set up this test without making a real request by
+creating a mock based on the API documentation, which includes a sample
+response. To start, let’s switch from <code>without_internet()</code> to
+<code>with_mock_api()</code> and re-run the function:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">with_mock_api</span>({</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>})</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="do">## Error: An unexpected request was made:</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="do">## POST https://api.twitter.com/2/tweets {&quot;text&quot;:&quot;Hello world!&quot;}</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="do">## Expected mock file: api.twitter.com/2/tweets-8d6065-POST.*</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="do">## Run `rlang::last_error()` to see where the error occurred.</span></span></code></pre></div>
+<p>We got the same error message before, but there is an extra line
+telling us what mock file it was looking to load. If we take the JSON
+example response from the API documentation and put it in that location,
+<code>with_mock_api()</code> will load it.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">dir.create</span>(<span class="st">&quot;tests/testthat/api.twitter.com/2&quot;</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&#39;{</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="st">  &quot;data&quot;: {</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="st">    &quot;id&quot;: &quot;1445880548472328192&quot;,</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="st">    &quot;text&quot;: &quot;Hello world!&quot;</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="st">  }</span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="st">}&#39;</span>, <span class="at">file =</span> <span class="st">&quot;tests/testthat/api.twitter.com/2/tweets-8d6065-POST.json&quot;</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="fu">with_mock_api</span>({</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>  <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>})</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="do">## $id</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="do">## [1] &quot;1445880548472328192&quot;</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="do">##</span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="do">## $text</span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="do">## [1] &quot;Hello world!&quot;</span></span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a><span class="do">##</span></span></code></pre></div>
+<p>Now we can test that we can make that request and the mock response
+is loaded:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">with_mock_api</span>({</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can send a tweet&quot;</span>, {</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>    <span class="fu">expect_equal</span>(</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)<span class="sc">$</span>text,</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>      <span class="st">&quot;Hello world!&quot;</span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>    )</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>  })</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>})</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="do">## Test passed 🥇</span></span></code></pre></div>
+<p>Because requests made in <code>with_mock_api()</code> that don’t find
+a corresponding mock file raise the same error as
+<code>without_internet()</code>, we can combine mock tests and tests
+that assert that a request would be made:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">with_mock_api</span>({</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  <span class="fu">test_that</span>(<span class="st">&quot;We can send a tweet&quot;</span>, {</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>    <span class="co"># This one has a mock file now</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>    <span class="fu">expect_equal</span>(</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Hello world!&quot;</span>)<span class="sc">$</span>text,</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>      <span class="st">&quot;Hello world!&quot;</span></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>    )</span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>    <span class="co"># This one does not</span></span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>    <span class="fu">expect_POST</span>(</span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>      <span class="fu">send_tweet</span>(<span class="st">&quot;Goodbye world!&quot;</span>),</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a>      <span class="st">&#39;https://api.twitter.com/2/tweets&#39;</span>,</span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a>      <span class="st">&#39;{&quot;text&quot;:&quot;Goodbye world!&quot;}&#39;</span></span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a>    )</span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>  })</span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a>})</span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a><span class="do">## Test passed 🌈</span></span></code></pre></div>
+<p>For more examples of cases to test like this, see the <a href="https://enpiar.com/r/httptest/articles/httptest.html"><code>httptest</code>
+vignette</a> and <a href="https://enpiar.com/2017/06/21/7-hard-testing-problems-made-easy-by-httptest/">this
+blog post</a>.</p>
 </div>
 
 

@@ -14,7 +14,6 @@
 #' (default) or be added in front of the existing paths? The default behavior
 #' here is the opposite of `.mockPaths()` so that the tests inside of
 #' `with_mock_dir()` are fully isolated.
-#' @return The result of `expr`
 #' @seealso `vignette("httptest2")` for usage examples.
 #' @export
 with_mock_dir <- function(dir, expr, simplify = TRUE, replace = TRUE) {

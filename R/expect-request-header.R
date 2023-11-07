@@ -5,33 +5,33 @@
 #' "live" HTTP requests.
 #'
 #' @param expr Code to evaluate
-#' @param ... Named headers to match. Values should either be a string (length-1 character), which will be passed to [testthat::expect_match()], or `NULL` to assert that the named header is not present in the request. To assert that a header is merely present in the request, without asserting anything about its contents, provide an empty string (`""`). Header names are always case-insensitive; header values will be matched using the following parameters:
+#' @param ... Named headers to match. Values should either be a string (length-1
+#' character), which will be passed to [testthat::expect_match()], or `NULL` to
+#' assert that the named header is not present in the request. To assert that a
+#' header is merely present in the request, without asserting anything about its
+#' contents, provide an empty string (`""`). Header names are always
+#' case-insensitive; header values will be matched using the following
+#' parameters:
 #' @inheritParams base::grepl
 #' @return The value of `expr` if there are no expectation failures
 #' @importFrom testthat expect_null expect_match
 #' @importFrom rlang is_string
-#' @examples
-#' library(httr2)
+#' @examplesIf FALSE
 #'
-#' without_internet({
-#'   expect_GET(
-#'     expect_request_header(
-#'       request("http://httpbin.org") %>%
-#'         req_headers(Accept = "image/png") %>%
-#'         req_perform(),
-#'       accept = "image/png",
-#'       `x-fake-header` = NULL
-#'     )
-#'   )
-#'   expect_GET(
-#'     expect_request_header(
-#'       request("http://httpbin.org") %>%
-#'         req_headers(Accept = "image/png") %>%
-#'         req_perform(),
-#'       accept = ""
-#'     )
-#'   )
-#' })
+#' library(httr2)
+#' expect_request_header(
+#'   request("http://httpbin.org") %>%
+#'     req_headers(Accept = "image/png") %>%
+#'     req_perform(),
+#'   accept = "image/png",
+#'   `x-fake-header` = NULL
+#' )
+#' expect_request_header(
+#'   request("http://httpbin.org") %>%
+#'     req_headers(Accept = "image/png") %>%
+#'     req_perform(),
+#'   accept = ""
+#' )
 #' @export
 expect_request_header <- function(expr,
                                   ...,
@@ -82,5 +82,13 @@ expect_request_header <- function(expr,
     }
   }
 
-  httr2::with_mock(header_mocker, expr)
+  with_mock(header_mocker, expr)
+}
+
+with_mock <- function(mock, code) {
+  if (httr2_1.0.0) {
+    utils::getFromNamespace("with_mocked_responses", "httr2")(mock, code)
+  } else {
+    httr2::with_mock(mock, code)
+  }
 }

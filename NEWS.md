@@ -1,3 +1,11 @@
+# httptest2 1.0.0
+
+* `capture_requests()` can be used without loading `library(httptest2)` (#22, @kforner)
+* `gsub_response()` safely redacts responses with an empty body (#28)
+* Remove unused feature that would allow mocking with arbitrary local files via invalid URLs
+* httr2 compatibility: workarounds for issues in `httr2 < 0.2` have been removed, and adaptations for `httr2 >= 1.0` added
+* Tests and examples no longer use `httpbin.org`
+
 # httptest2 0.1.0
 
 Initial port of `httptest` to work on top of `httr2`. All APIs preserved except:

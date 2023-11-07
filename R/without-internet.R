@@ -32,7 +32,7 @@
 #'   )
 #' })
 #' @export
-without_internet <- function(expr) httr2::with_mock(stop_request, expr)
+without_internet <- function(expr) with_mock(stop_request, expr)
 
 #' @rdname without_internet
 #' @export
@@ -70,9 +70,4 @@ cnd_footer.httptest2_request <- function(cnd, ...) {
     # Poked in here by mock_request for ease of debugging
     paste0("Expected mock file: ", cnd$mockfile, ".*")
   }
-}
-
-# For use in tests and examples; can be mocked
-currently_offline <- function(url = "http://httpbin.org/") {
-  inherits(try(req_perform(request(url)), silent = TRUE), "try-error")
 }

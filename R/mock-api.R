@@ -19,7 +19,8 @@
 #' want as long as you set the appropriate location with [.mockPaths()].
 #'
 #' @param expr Code to run inside the mock context
-#' @return `with_mock_api()` returns the result of `expr`. `use_mock_api()` and `stop_mocking()` return nothing.
+#' @return `with_mock_api()` returns the result of `expr`. `use_mock_api()` and
+#'  `stop_mocking()` return nothing.
 #' @export
 #' @examples
 #' library(httr2)
@@ -27,8 +28,8 @@
 #'   # There are no mocks recorded in this example, so catch this request with
 #'   # expect_GET()
 #'   expect_GET(
-#'     request("http://httpbin.org/get") %>% req_perform(),
-#'     "http://httpbin.org/get"
+#'     request("https://cran.r-project.org") %>% req_perform(),
+#'     "https://cran.r-project.org"
 #'   )
 #'   # For examples with mocks, see the tests and vignettes
 #' })
@@ -60,9 +61,6 @@ stop_mocking <- function() {
 }
 
 mock_request <- function(req) {
-  # If there's a query, then req$url has been through build_url(parse_url())
-  # and if it's a file and not URL, it has grown a ":///" prefix. Prune that.
-  req$url <- sub("^:///", "", req$url)
   f <- build_mock_url(get_current_redactor()(req))
   mockfile <- find_mock_file(f)
   if (!is.null(mockfile)) {
@@ -120,7 +118,7 @@ load_response <- function(file, req) {
   } else if (ext %in% names(EXT_TO_CONTENT_TYPE)) {
     response(
       url = req$url,
-      method = req$method,
+      method = get_request_method(req),
       headers = list(`Content-Type` = EXT_TO_CONTENT_TYPE[[ext]]),
       status_code = 200L,
       body = readBin(file, "raw", n = file.size(file))
@@ -128,12 +126,8 @@ load_response <- function(file, req) {
   } else if (ext == "204") {
     response(
       url = req$url,
-      method = req$method,
-      status_code = 204L,
-      # httr2's default for response() is body = NULL
-      # but all real requests seem to have body = raw(n)
-      # https://github.com/r-lib/httr2/issues/100
-      body = raw(0L)
+      method = get_request_method(req),
+      status_code = 204L
     )
   } else {
     stop("Unsupported mock file extension: ", ext, call. = FALSE)
@@ -141,6 +135,9 @@ load_response <- function(file, req) {
 }
 
 adapt_httr_response <- function(resp) {
+  # Restore httr2 1.0.0 cache
+  resp$cache <- new.env(parent = emptyenv())
+  
   if (inherits(resp, "httr2_response")) {
     return(resp)
   }
