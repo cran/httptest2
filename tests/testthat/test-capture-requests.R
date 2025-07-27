@@ -169,7 +169,11 @@ with_mock_api({
     })
     expect_setequal(
       dir(d2, recursive = TRUE),
-      c("example.com/get.json", "test.api/object1.json", "httpbin.not/status/204.204")
+      c(
+        "example.com/get.json",
+        "test.api/object1.json",
+        "httpbin.not/status/204.204"
+      )
     )
     expect_identical(
       readLines(file.path(d2, "example.com/get.json")),
@@ -184,7 +188,8 @@ with_mock_api({
       readLines(file.path(d2, "httpbin.not/status/204.204")),
       0
     )
-    with_mock_path(d2,
+    with_mock_path(
+      d2,
       {
         mocked <- request("http://httpbin.not/status/204/") %>% req_perform()
         expect_length(mocked$body, 0)
@@ -251,7 +256,7 @@ with_mock_api({
 
 test_that("If the httr2 request function exits with an error, capture_requests warns", {
   capture_requests({
-    with_mock(
+    with_mocked_responses(
       function(req) stop("Error!"),
       expect_warning(
         expect_error(
